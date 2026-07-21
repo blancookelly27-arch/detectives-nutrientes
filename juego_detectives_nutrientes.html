@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Qué nutriente soy?</title>
+  <style>
+    :root{
+      --bg:#f7f3e8;
+      --panel:#ffffff;
+      --ink:#24313f;
+      --accent:#f2b705;
+      --accent2:#6aa84f;
+      --danger:#c0392b;
+      --ok:#2e8b57;
+      --shadow:0 12px 30px rgba(0,0,0,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(242,183,5,.22), transparent 25%),
+        radial-gradient(circle at 85% 20%, rgba(106,168,79,.18), transparent 26%),
+        var(--bg);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+    .app{
+      width:min(900px,100%);
+      background:var(--panel);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      border:4px solid var(--ink);
+    }
+    header{
+      background:var(--ink);
+      color:#fff;
+      padding:22px 24px;
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    header h1{margin:0;font-size:clamp(1.6rem,4vw,2.5rem)}
+    .badge{
+      background:var(--accent);
+      color:#1e1e1e;
+      padding:8px 14px;
+      border-radius:999px;
+      font-weight:700;
+    }
+    main{padding:28px}
+    .screen{display:none}
+    .screen.active{display:block}
+    .intro,.finish{text-align:center;padding:25px 8px 35px}
+    .detective{font-size:5rem;margin-bottom:10px}
+    .intro p,.finish p{font-size:1.15rem;line-height:1.5}
+    button{
+      border:none;
+      cursor:pointer;
+      font:inherit;
+    }
+    .primary{
+      background:var(--accent);
+      color:#111;
+      font-weight:800;
+      padding:14px 24px;
+      border-radius:14px;
+      box-shadow:0 5px 0 #b38400;
+      transition:.15s transform;
+    }
+    .primary:active{transform:translateY(3px);box-shadow:0 2px 0 #b38400}
+    .topline{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+    .progress-wrap{
+      flex:1;
+      min-width:220px;
+      height:15px;
+      background:#e8e8e8;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .progress{
+      height:100%;
+      width:0;
+      background:var(--accent2);
+      transition:width .3s ease;
+    }
+    .case-title{
+      margin:16px 0 8px;
+      font-size:1.55rem;
+    }
+    .clue-card{
+      background:#fff8d7;
+      border:3px dashed var(--accent);
+      border-radius:18px;
+      padding:18px 20px;
+      margin:16px 0 20px;
+    }
+    .clue-card ul{margin:0;padding-left:22px}
+    .clue-card li{margin:10px 0;line-height:1.4}
+    .options{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+    .option{
+      background:#eef3f6;
+      color:var(--ink);
+      border:2px solid #cad5db;
+      padding:15px;
+      border-radius:14px;
+      font-weight:700;
+      min-height:58px;
+      transition:.15s ease;
+    }
+    .option:hover{transform:translateY(-2px);border-color:var(--ink)}
+    .option.correct{background:#d8f3df;border-color:var(--ok);color:#145a32}
+    .option.wrong{background:#fde2e2;border-color:var(--danger);color:#7b241c}
+    .feedback{
+      min-height:64px;
+      margin-top:18px;
+      padding:14px 16px;
+      border-radius:14px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
+    .feedback.ok{background:#e5f6ea;color:#1e6d3d}
+    .feedback.bad{background:#fdeaea;color:#8a2720}
+    .next-row{text-align:right;margin-top:14px}
+    .hidden{display:none}
+    .score-big{font-size:3rem;font-weight:900;color:var(--accent2);margin:10px 0}
+    @media (max-width:600px){
+      main{padding:20px}
+      .options{grid-template-columns:1fr}
+      header{padding:18px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🕵️‍♀️ ¿Qué nutriente soy?</h1>
+      <div class="badge" id="scoreBadge">Puntaje: 0</div>
+    </header>
+
+    <main>
+      <section id="intro" class="screen active intro">
+        <div class="detective">🔎</div>
+        <h2>Misión: Detectives de los Nutrientes</h2>
+        <p>Leé las pistas y descubrí qué nutriente corresponde en cada caso.</p>
+        <button class="primary" id="startBtn">Comenzar misión</button>
+      </section>
+
+      <section id="game" class="screen">
+        <div class="topline">
+          <strong id="counter">Caso 1 de 6</strong>
+          <div class="progress-wrap" aria-label="Progreso">
+            <div class="progress" id="progress"></div>
+          </div>
+        </div>
+
+        <h2 class="case-title" id="caseTitle"></h2>
+
+        <div class="clue-card">
+          <ul id="clues"></ul>
+        </div>
+
+        <div class="options" id="options"></div>
+
+        <div class="feedback hidden" id="feedback" role="status" aria-live="polite"></div>
+
+        <div class="next-row">
+          <button class="primary hidden" id="nextBtn">Siguiente caso</button>
+        </div>
+      </section>
+
+      <section id="finish" class="screen finish">
+        <div class="detective">🏆</div>
+        <h2>¡Caso resuelto!</h2>
+        <p>¡Felicitaciones, Detective de los Nutrientes!</p>
+        <div class="score-big" id="finalScore"></div>
+        <button class="primary" id="restartBtn">Jugar otra vez</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const cases = [
+      {
+        title: "Caso 1: El alimento misterioso es el atún",
+        clues: [
+          "Ayudo a formar, reparar y renovar los tejidos del organismo.",
+          "También participo en la producción de enzimas, hormonas y anticuerpos.",
+          "Estoy presente en el atún."
+        ],
+        options: ["Calcio", "Proteínas", "Sodio", "Azúcares"],
+        answer: "Proteínas",
+        feedback: "¡Correcto! Las proteínas ayudan a formar, reparar y renovar los tejidos del cuerpo."
+      },
+      {
+        title: "Caso 2: El alimento misterioso es la leche",
+        clues: [
+          "Soy un mineral.",
+          "Ayudo a formar y mantener huesos y dientes fuertes.",
+          "Estoy presente en la leche."
+        ],
+        options: ["Sodio", "Calcio", "Grasas", "Azúcares"],
+        answer: "Calcio",
+        feedback: "¡Muy bien! El calcio ayuda a formar y mantener huesos y dientes fuertes."
+      },
+      {
+        title: "Caso 3: El alimento misterioso es la sal",
+        clues: [
+          "Soy un mineral que el cuerpo necesita en pequeñas cantidades.",
+          "Ayudo a mantener el equilibrio de agua del cuerpo.",
+          "Permito que los nervios envíen mensajes a los músculos para que puedan contraerse y relajarse."
+        ],
+        options: ["Proteínas", "Sodio", "Calcio", "Grasas"],
+        answer: "Sodio",
+        feedback: "¡Excelente! El sodio es necesario, pero debe consumirse en pequeñas cantidades."
+      },
+      {
+        title: "Caso 4: El alimento misterioso es el aceite de oliva",
+        clues: [
+          "Soy un tipo de grasa considerada saludable.",
+          "Ayudo a almacenar energía, proteger los órganos y absorber algunas vitaminas.",
+          "Estoy presente en el aceite de oliva."
+        ],
+        options: ["Grasas saturadas", "Grasas insaturadas", "Grasas trans", "Sodio"],
+        answer: "Grasas insaturadas",
+        feedback: "¡Correcto! Las grasas insaturadas forman parte de una alimentación saludable."
+      },
+      {
+        title: "Caso 5: El alimento misterioso es la manzana",
+        clues: [
+          "Estoy presente de forma natural en algunos alimentos.",
+          "Aporto energía al organismo.",
+          "Estoy en la manzana junto con fibra, agua y vitaminas."
+        ],
+        options: ["Calcio", "Proteínas", "Azúcares naturales", "Sodio"],
+        answer: "Azúcares naturales",
+        feedback: "¡Muy bien! Los azúcares naturales están presentes de forma natural en alimentos como las frutas."
+      },
+      {
+        title: "Caso 6: El alimento misterioso es el caramelo",
+        clues: [
+          "Se me incorpora durante la elaboración de muchos productos.",
+          "Estoy presente en golosinas como los caramelos.",
+          "Es fácil consumirme en exceso."
+        ],
+        options: ["Azúcares naturales", "Proteínas", "Azúcares agregados", "Calcio"],
+        answer: "Azúcares agregados",
+        feedback: "¡Excelente! Los azúcares agregados se incorporan durante la elaboración de muchos productos."
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let answered = false;
+
+    const intro = document.getElementById("intro");
+    const game = document.getElementById("game");
+    const finish = document.getElementById("finish");
+    const startBtn = document.getElementById("startBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const counter = document.getElementById("counter");
+    const progress = document.getElementById("progress");
+    const caseTitle = document.getElementById("caseTitle");
+    const clues = document.getElementById("clues");
+    const options = document.getElementById("options");
+    const feedback = document.getElementById("feedback");
+    const scoreBadge = document.getElementById("scoreBadge");
+    const finalScore = document.getElementById("finalScore");
+
+    function showScreen(screen){
+      [intro, game, finish].forEach(s => s.classList.remove("active"));
+      screen.classList.add("active");
+    }
+
+    function renderCase(){
+      answered = false;
+      const item = cases[current];
+      counter.textContent = `Caso ${current + 1} de ${cases.length}`;
+      progress.style.width = `${(current / cases.length) * 100}%`;
+      caseTitle.textContent = item.title;
+      clues.innerHTML = item.clues.map(c => `<li>${c}</li>`).join("");
+      options.innerHTML = "";
+      feedback.className = "feedback hidden";
+      feedback.textContent = "";
+      nextBtn.classList.add("hidden");
+
+      item.options.forEach(optionText => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = optionText;
+        btn.addEventListener("click", () => checkAnswer(btn, optionText));
+        options.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(button, selected){
+      if(answered) return;
+      const item = cases[current];
+
+      if(selected === item.answer){
+        answered = true;
+        score++;
+        scoreBadge.textContent = `Puntaje: ${score}`;
+        button.classList.add("correct");
+        feedback.className = "feedback ok";
+        feedback.textContent = item.feedback;
+        [...options.children].forEach(b => b.disabled = true);
+        nextBtn.classList.remove("hidden");
+      } else {
+        button.classList.add("wrong");
+        button.disabled = true;
+        feedback.className = "feedback bad";
+        feedback.textContent = "Esa pista no corresponde. ¡Intentá nuevamente, detective!";
+      }
+    }
+
+    function startGame(){
+      current = 0;
+      score = 0;
+      scoreBadge.textContent = "Puntaje: 0";
+      showScreen(game);
+      renderCase();
+    }
+
+    function nextCase(){
+      current++;
+      if(current < cases.length){
+        renderCase();
+      } else {
+        progress.style.width = "100%";
+        finalScore.textContent = `${score} / ${cases.length}`;
+        showScreen(finish);
+      }
+    }
+
+    startBtn.addEventListener("click", startGame);
+    nextBtn.addEventListener("click", nextCase);
+    restartBtn.addEventListener("click", startGame);
+  </script>
+</body>
+</html>
