@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alerta en la etiqueta</title>
+  <style>
+    :root{
+      --bg:#fff7ef;
+      --panel:#ffffff;
+      --ink:#263238;
+      --accent:#ffb703;
+      --accent2:#fb8500;
+      --danger:#d62828;
+      --ok:#2a9d8f;
+      --muted:#e9ecef;
+      --shadow:0 14px 36px rgba(0,0,0,.14);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(255,183,3,.22), transparent 24%),
+        radial-gradient(circle at 90% 15%, rgba(214,40,40,.14), transparent 22%),
+        var(--bg);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .app{
+      width:min(920px,100%);
+      background:var(--panel);
+      border:4px solid var(--ink);
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+
+    header{
+      background:var(--ink);
+      color:#fff;
+      padding:22px 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    header h1{
+      margin:0;
+      font-size:clamp(1.6rem,4vw,2.5rem);
+    }
+
+    .badge{
+      background:var(--accent);
+      color:#111;
+      padding:8px 14px;
+      border-radius:999px;
+      font-weight:800;
+    }
+
+    main{padding:28px}
+    .screen{display:none}
+    .screen.active{display:block}
+
+    .intro,.finish{
+      text-align:center;
+      padding:24px 8px 34px;
+    }
+
+    .icon{
+      font-size:5rem;
+      margin-bottom:8px;
+    }
+
+    .intro p,.finish p{
+      font-size:1.12rem;
+      line-height:1.55;
+    }
+
+    .note{
+      background:#fff3cd;
+      border-left:6px solid var(--accent);
+      padding:13px 15px;
+      border-radius:10px;
+      margin:18px auto;
+      max-width:760px;
+      text-align:left;
+      line-height:1.45;
+    }
+
+    button{
+      border:none;
+      cursor:pointer;
+      font:inherit;
+    }
+
+    .primary{
+      background:var(--accent);
+      color:#111;
+      font-weight:900;
+      padding:14px 24px;
+      border-radius:14px;
+      box-shadow:0 5px 0 #bf8500;
+    }
+
+    .primary:active{
+      transform:translateY(3px);
+      box-shadow:0 2px 0 #bf8500;
+    }
+
+    .topline{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .progress-wrap{
+      flex:1;
+      min-width:220px;
+      height:15px;
+      background:#e8e8e8;
+      border-radius:999px;
+      overflow:hidden;
+    }
+
+    .progress{
+      height:100%;
+      width:0;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      transition:width .3s ease;
+    }
+
+    .case-title{
+      margin:16px 0 8px;
+      font-size:1.55rem;
+    }
+
+    .food-tag{
+      display:inline-block;
+      background:#ffe8cc;
+      color:#8a3f00;
+      font-weight:900;
+      padding:8px 12px;
+      border-radius:999px;
+      margin-bottom:12px;
+    }
+
+    .clue-card{
+      background:#fff8df;
+      border:3px dashed var(--accent2);
+      border-radius:18px;
+      padding:18px 20px;
+      margin:14px 0 20px;
+    }
+
+    .clue-card ul{
+      margin:0;
+      padding-left:22px;
+    }
+
+    .clue-card li{
+      margin:10px 0;
+      line-height:1.4;
+    }
+
+    .question{
+      font-weight:900;
+      font-size:1.12rem;
+      margin:8px 0 14px;
+    }
+
+    .options{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .option{
+      background:#f1f4f6;
+      color:var(--ink);
+      border:2px solid #cfd8dc;
+      padding:15px;
+      border-radius:14px;
+      font-weight:800;
+      min-height:60px;
+      transition:.15s ease;
+    }
+
+    .option:hover{
+      transform:translateY(-2px);
+      border-color:var(--ink);
+    }
+
+    .option.correct{
+      background:#dff5ef;
+      border-color:var(--ok);
+      color:#145a50;
+    }
+
+    .option.wrong{
+      background:#fde2e2;
+      border-color:var(--danger);
+      color:#8a1c1c;
+    }
+
+    .feedback{
+      min-height:70px;
+      margin-top:18px;
+      padding:14px 16px;
+      border-radius:14px;
+      font-weight:800;
+      line-height:1.4;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+    }
+
+    .feedback.ok{
+      background:#e4f6f2;
+      color:#17665c;
+    }
+
+    .feedback.bad{
+      background:#fdeaea;
+      color:#8b2020;
+    }
+
+    .next-row{
+      text-align:right;
+      margin-top:14px;
+    }
+
+    .hidden{display:none}
+
+    .score-big{
+      font-size:3rem;
+      font-weight:900;
+      color:var(--ok);
+      margin:10px 0;
+    }
+
+    @media (max-width:620px){
+      main{padding:20px}
+      .options{grid-template-columns:1fr}
+      header{padding:18px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🚨 Alerta en la etiqueta</h1>
+      <div class="badge" id="scoreBadge">Puntaje: 0</div>
+    </header>
+
+    <main>
+      <section id="intro" class="screen active intro">
+        <div class="icon">🕵️‍♂️</div>
+        <h2>Misión: descubrir qué debemos vigilar</h2>
+        <p>Observá las pistas de cada alimento y elegí qué componente conviene controlar.</p>
+
+        <div class="note">
+          Estos alimentos no están “prohibidos”, pero conviene consumirlos solo de vez en cuando,
+          especialmente cuando contienen mucha cantidad de <strong>grasas saturadas</strong>,
+          <strong>grasas trans</strong> o <strong>azúcares añadidos</strong>.
+        </div>
+
+        <button class="primary" id="startBtn">Comenzar misión</button>
+      </section>
+
+      <section id="game" class="screen">
+        <div class="topline">
+          <strong id="counter">Caso 1 de 6</strong>
+          <div class="progress-wrap" aria-label="Progreso">
+            <div class="progress" id="progress"></div>
+          </div>
+        </div>
+
+        <h2 class="case-title" id="caseTitle"></h2>
+        <div class="food-tag" id="foodTag"></div>
+
+        <div class="clue-card">
+          <ul id="clues"></ul>
+        </div>
+
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+
+        <div class="feedback hidden" id="feedback" role="status" aria-live="polite"></div>
+
+        <div class="next-row">
+          <button class="primary hidden" id="nextBtn">Siguiente caso</button>
+        </div>
+      </section>
+
+      <section id="finish" class="screen finish">
+        <div class="icon">🏆</div>
+        <h2>¡Misión cumplida!</h2>
+        <p>Ya sabés qué componentes conviene buscar en las etiquetas de estos productos.</p>
+        <div class="score-big" id="finalScore"></div>
+        <div class="note">
+          Recordá: no se trata solamente de mirar un ingrediente, sino también de observar la
+          <strong>cantidad por porción</strong> y la <strong>frecuencia de consumo</strong>.
+        </div>
+        <button class="primary" id="restartBtn">Jugar otra vez</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const cases = [
+      {
+        title: "Caso 1",
+        food: "🍫 Alfajor",
+        clues: [
+          "Suele contener relleno dulce y cobertura de chocolate.",
+          "Puede aportar bastante azúcar en una porción pequeña.",
+          "También puede contener grasas saturadas."
+        ],
+        question: "¿Qué conviene vigilar especialmente en su etiqueta?",
+        options: ["Calcio", "Azúcares añadidos", "Fibra", "Agua"],
+        answer: "Azúcares añadidos",
+        feedback: "¡Correcto! En el alfajor conviene observar especialmente los azúcares añadidos y también la cantidad de grasas saturadas."
+      },
+      {
+        title: "Caso 2",
+        food: "🥤 Chocolatada",
+        clues: [
+          "Tiene leche, pero también puede tener azúcar incorporada durante su elaboración.",
+          "Su sabor dulce no proviene únicamente del azúcar natural de la leche."
+        ],
+        question: "¿Qué componente puede encontrarse en cantidad elevada?",
+        options: ["Azúcares añadidos", "Proteínas", "Calcio", "Fibra"],
+        answer: "Azúcares añadidos",
+        feedback: "¡Muy bien! Muchas chocolatadas contienen azúcares añadidos, por eso es importante comparar etiquetas."
+      },
+      {
+        title: "Caso 3",
+        food: "🍬 Caramelos",
+        clues: [
+          "Se elaboran principalmente con azúcar.",
+          "Aportan poca fibra, vitaminas o minerales.",
+          "Es fácil comer varios en poco tiempo."
+        ],
+        question: "¿Qué componente predomina?",
+        options: ["Grasas insaturadas", "Calcio", "Azúcares añadidos", "Proteínas"],
+        answer: "Azúcares añadidos",
+        feedback: "¡Excelente! Los caramelos aportan principalmente azúcares añadidos y conviene consumirlos solo ocasionalmente."
+      },
+      {
+        title: "Caso 4",
+        food: "🍔 Hamburguesa o nuggets",
+        clues: [
+          "Son productos procesados.",
+          "Según su elaboración, pueden contener grasas de origen animal y aceites.",
+          "También suelen aportar bastante sodio."
+        ],
+        question: "¿Qué tipo de grasa conviene revisar especialmente?",
+        options: ["Grasas saturadas", "Grasas insaturadas", "Calcio", "Azúcares naturales"],
+        answer: "Grasas saturadas",
+        feedback: "¡Correcto! En estos productos conviene observar las grasas saturadas y también el sodio."
+      },
+      {
+        title: "Caso 5",
+        food: "🥫 Mayonesa",
+        clues: [
+          "Se elabora principalmente con aceite.",
+          "Puede aportar mucha grasa en una pequeña cantidad.",
+          "No todas las grasas son iguales."
+        ],
+        question: "¿Qué conviene mirar primero en la etiqueta?",
+        options: ["Grasas totales y tipo de grasa", "Calcio", "Azúcares naturales", "Fibra"],
+        answer: "Grasas totales y tipo de grasa",
+        feedback: "¡Muy bien! En la mayonesa conviene revisar la cantidad de grasas totales y qué tipo de grasas contiene."
+      },
+      {
+        title: "Caso 6",
+        food: "🍪 Galletitas rellenas o productos de bollería",
+        clues: [
+          "Pueden elaborarse con grasas industriales.",
+          "Algunas etiquetas informan grasas trans.",
+          "También suelen contener azúcares añadidos."
+        ],
+        question: "¿Qué grasa conviene evitar o reducir al máximo?",
+        options: ["Grasas trans", "Grasas insaturadas", "Calcio", "Proteínas"],
+        answer: "Grasas trans",
+        feedback: "¡Caso resuelto! Las grasas trans deben evitarse o reducirse al máximo. También conviene observar los azúcares añadidos."
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let answered = false;
+
+    const intro = document.getElementById("intro");
+    const game = document.getElementById("game");
+    const finish = document.getElementById("finish");
+    const startBtn = document.getElementById("startBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const counter = document.getElementById("counter");
+    const progress = document.getElementById("progress");
+    const caseTitle = document.getElementById("caseTitle");
+    const foodTag = document.getElementById("foodTag");
+    const clues = document.getElementById("clues");
+    const question = document.getElementById("question");
+    const options = document.getElementById("options");
+    const feedback = document.getElementById("feedback");
+    const scoreBadge = document.getElementById("scoreBadge");
+    const finalScore = document.getElementById("finalScore");
+
+    function showScreen(screen){
+      [intro, game, finish].forEach(s => s.classList.remove("active"));
+      screen.classList.add("active");
+    }
+
+    function renderCase(){
+      answered = false;
+      const item = cases[current];
+
+      counter.textContent = `Caso ${current + 1} de ${cases.length}`;
+      progress.style.width = `${(current / cases.length) * 100}%`;
+      caseTitle.textContent = item.title;
+      foodTag.textContent = item.food;
+      clues.innerHTML = item.clues.map(c => `<li>${c}</li>`).join("");
+      question.textContent = item.question;
+      options.innerHTML = "";
+      feedback.className = "feedback hidden";
+      feedback.textContent = "";
+      nextBtn.classList.add("hidden");
+
+      item.options.forEach(optionText => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = optionText;
+        btn.addEventListener("click", () => checkAnswer(btn, optionText));
+        options.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(button, selected){
+      if(answered) return;
+
+      const item = cases[current];
+
+      if(selected === item.answer){
+        answered = true;
+        score++;
+        scoreBadge.textContent = `Puntaje: ${score}`;
+        button.classList.add("correct");
+        feedback.className = "feedback ok";
+        feedback.textContent = item.feedback;
+        [...options.children].forEach(b => b.disabled = true);
+        nextBtn.classList.remove("hidden");
+      } else {
+        button.classList.add("wrong");
+        button.disabled = true;
+        feedback.className = "feedback bad";
+        feedback.textContent = "Esa opción no corresponde. ¡Revisá las pistas e intentá otra vez!";
+      }
+    }
+
+    function startGame(){
+      current = 0;
+      score = 0;
+      scoreBadge.textContent = "Puntaje: 0";
+      showScreen(game);
+      renderCase();
+    }
+
+    function nextCase(){
+      current++;
+
+      if(current < cases.length){
+        renderCase();
+      } else {
+        progress.style.width = "100%";
+        finalScore.textContent = `${score} / ${cases.length}`;
+        showScreen(finish);
+      }
+    }
+
+    startBtn.addEventListener("click", startGame);
+    nextBtn.addEventListener("click", nextCase);
+    restartBtn.addEventListener("click", startGame);
+  </script>
+</body>
+</html>
